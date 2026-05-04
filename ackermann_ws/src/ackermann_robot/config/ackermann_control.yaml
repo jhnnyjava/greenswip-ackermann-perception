@@ -1,0 +1,55 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    use_sim_time: true
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    ackermann_steering_controller:
+      type: ackermann_steering_controller/AckermannSteeringController
+
+joint_state_broadcaster:
+  ros__parameters:
+    use_sim_time: true
+    publish_rate: 50.0
+
+# NOTE:
+# ros2_controllers' ackermann_steering_controller subscribes to its private
+# ~/reference topic as geometry_msgs/TwistStamped (linear.x, angular.z).
+# If you are publishing AckermannDriveStamped on /ackermann_cmd, convert or
+# bridge it to TwistStamped before it reaches this controller.
+
+ackermann_steering_controller:
+  ros__parameters:
+    use_sim_time: true
+    reference_timeout: 2.0
+    open_loop: false
+    velocity_rolling_window_size: 10
+    position_feedback: false
+    reduce_wheel_speed_until_steering_reached: false
+
+    # Joint names used by the controller
+    traction_joints_names:
+      - BL_WHEEL_JOINT
+      - BR_WHEEL_JOINT
+    steering_joints_names:
+      - FL_STEERING_JOINT
+      - FR_STEERING_JOINT
+
+    # State interface names (explicitly set for clarity)
+    traction_joints_state_names:
+      - BL_WHEEL_JOINT
+      - BR_WHEEL_JOINT
+    steering_joints_state_names:
+      - FL_STEERING_JOINT
+      - FR_STEERING_JOINT
+
+    # Ackermann geometry
+    wheelbase: 0.295
+    traction_wheels_radius: 0.05027
+    traction_track_width: 0.2186
+    steering_track_width: 0.2186
+
+    # Frames / odometry
+    base_frame_id: base_link
+    odom_frame_id: odom
+    enable_odom_tf: true

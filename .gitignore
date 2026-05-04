@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+ackermann_ws/build/
+ackermann_ws/install/
+ackermann_ws/log/
