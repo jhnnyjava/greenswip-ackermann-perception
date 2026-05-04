@@ -9,13 +9,11 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    workspace_root = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../../../../')
-    )
+    package_share = get_package_share_directory('ackermann_robot')
 
-    xacro_file = os.path.join(workspace_root, 'ack.urdf.xacro')
-    world_file = os.path.join(workspace_root, 'shapes.sdf')
-    robot_description = Command(['xacro ', xacro_file])
+    xacro_file = os.path.join(package_share, 'urdf', 'ack.urdf.xacro')
+    world_file = os.path.join(package_share, 'worlds', 'shapes.sdf')
+    robot_description = Command(['xacro', ' ', xacro_file])
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

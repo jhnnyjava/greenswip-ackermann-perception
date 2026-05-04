@@ -60,6 +60,7 @@ class VisionNode(Node):
 
         debug_image = cv_image.copy()
         best_detection = None
+        best_area = 0.0
 
         for contour in contours:
             # Reject tiny contours early to avoid noise and compression artifacts.
@@ -100,13 +101,14 @@ class VisionNode(Node):
             centroid_y = int(moments['m01'] / moments['m00'])
             box_area = float(w * h)
 
-            best_detection = {
-                'centroid_x': centroid_x,
-                'centroid_y': centroid_y,
-                'box_area': box_area,
-                'rect': (x, y, w, h),
-            }
-            break
+            if box_area > best_area:
+                best_area = box_area
+                best_detection = {
+                    'centroid_x': centroid_x,
+                    'centroid_y': centroid_y,
+                    'box_area': box_area,
+                    'rect': (x, y, w, h),
+                }
 
         if best_detection is not None:
             x, y, w, h = best_detection['rect']

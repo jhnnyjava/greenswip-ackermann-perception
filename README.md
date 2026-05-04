@@ -59,14 +59,7 @@ docker build -t ackermann_viz_image -f Dockerfile .
 VIZ_DISPLAY=:0 bash ./launch_ackermann_viz.sh
 
 # Launch full Gazebo + ROS 2 simulation stack
-docker run --rm --name ackermann_sim --net=host \
-  -e DISPLAY=:0 \
-  -e QT_X11_NO_MITSHM=1 \
-  -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-  -v /home/johnsumba/Documents/Resources/Material/ackermann_ws:/ws \
-  -w /ws \
-  ros:humble \
-  bash -lc "set -e && apt-get update && apt-get install -y python3-colcon-common-extensions ros-humble-xacro ros-humble-cv-bridge ros-humble-ackermann-msgs ros-humble-ros2-control ros-humble-ros2-controllers ros-humble-joint-state-broadcaster ros-humble-ackermann-steering-controller ros-humble-ros-gz-sim ros-humble-ros-gz-bridge && source /opt/ros/humble/setup.bash && colcon build --symlink-install && source install/setup.bash && ros2 launch ackermann_robot simulation.launch.py"
+bash ./launch_ackermann_gazebo.sh
 ```
 
 ## How It Works
@@ -93,7 +86,7 @@ The detected target is published on `/target_info` as `geometry_msgs/Point`:
 - Sentinel when not found: `(-1, -1, 0)`
 
 ### Control
-The control node subscribes to `/target_info` and publishes `AckermannDriveStamped` on `/ackermann_cmd`.
+The control node subscribes to `/target_info`, publishes `AckermannDriveStamped` on `/ackermann_cmd` for diagnostics, and also publishes `TwistStamped` on `/ackermann_steering_controller/reference` so the ros2_control Ackermann controller can drive the vehicle in Gazebo.
 
 Ackermann steering formula:
 

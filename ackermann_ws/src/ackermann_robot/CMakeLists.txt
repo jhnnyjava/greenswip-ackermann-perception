@@ -3,13 +3,7 @@ project(ackermann_robot)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY launch config
-	DESTINATION share/${PROJECT_NAME}
-)
-
-install(FILES
-	${CMAKE_CURRENT_SOURCE_DIR}/ack.urdf.xacro
-	${CMAKE_CURRENT_SOURCE_DIR}/shapes.sdf
+install(DIRECTORY launch config urdf worlds
 	DESTINATION share/${PROJECT_NAME}
 )
 

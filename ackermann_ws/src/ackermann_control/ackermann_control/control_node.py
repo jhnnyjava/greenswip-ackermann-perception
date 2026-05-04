@@ -3,10 +3,12 @@
 # Ackermann steering control node for target-following robot
 
 import time
+from math import tan
 
 import rclpy
 from ackermann_msgs.msg import AckermannDriveStamped
 from geometry_msgs.msg import Point
+from geometry_msgs.msg import TwistStamped
 from rclpy.node import Node
 
 
@@ -44,6 +46,11 @@ class AckermannControlNode(Node):
             '/ackermann_cmd',
             10,
         )
+        self.controller_ref_pub = self.create_publisher(
+            TwistStamped,
+            '/ackermann_steering_controller/reference',
+            10,
+        )
 
         self.create_timer(0.05, self.control_loop)
 
@@ -58,22 +65,34 @@ class AckermannControlNode(Node):
         age = current_time - self.last_valid_target_time
 
         cmd_msg = AckermannDriveStamped()
+        twist_msg = TwistStamped()
         cmd_msg.header.stamp = self.get_clock().now().to_msg()
         cmd_msg.header.frame_id = 'base_link'
+        twist_msg.header.stamp = cmd_msg.header.stamp
+        twist_msg.header.frame_id = 'base_link'
+
+        def publish_motion(speed: float, steering_angle: float) -> None:
+            cmd_msg.drive.speed = speed
+            cmd_msg.drive.steering_angle = steering_angle
+
+            twist_msg.twist.linear.x = speed
+            if abs(self.wheelbase) > 1e-6:
+                twist_msg.twist.angular.z = speed * tan(steering_angle) / self.wheelbase
+            else:
+                twist_msg.twist.angular.z = 0.0
+
+            self.cmd_pub.publish(cmd_msg)
+            self.controller_ref_pub.publish(twist_msg)
 
         if age > self.target_search_timeout:
-            cmd_msg.drive.steering_angle = 0.3
-            cmd_msg.drive.speed = 0.1
-            self.cmd_pub.publish(cmd_msg)
+            publish_motion(0.1, 0.3)
             return
 
         # If we are close enough, stop completely. For Ackermann robots, speed=0 implies steer=0.
         last_target = getattr(self, '_last_target', None)
         if last_target is not None:
             if last_target.z > self.target_distance_threshold:
-                cmd_msg.drive.steering_angle = 0.0
-                cmd_msg.drive.speed = 0.0
-                self.cmd_pub.publish(cmd_msg)
+                publish_motion(0.0, 0.0)
                 return
 
             err = float(last_target.x) - self.image_center_x
@@ -92,14 +111,10 @@ class AckermannControlNode(Node):
             else:
                 speed = 0.15
 
-            cmd_msg.drive.steering_angle = steering_angle
-            cmd_msg.drive.speed = speed
-            self.cmd_pub.publish(cmd_msg)
+            publish_motion(speed, steering_angle)
             return
 
-        cmd_msg.drive.steering_angle = 0.0
-        cmd_msg.drive.speed = 0.0
-        self.cmd_pub.publish(cmd_msg)
+        publish_motion(0.0, 0.0)
 
     def target_callback(self, msg: Point) -> None:
         if msg.x == -1.0:
