@@ -1,16 +1,17 @@
-FROM ros:humble
+FROM osrf/ros:humble-desktop
 
 SHELL ["/bin/bash", "-lc"]
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    python3-colcon-common-extensions \
-    ros-humble-xacro \
-    ros-humble-cv-bridge \
-    ros-humble-ackermann-msgs \
+RUN apt-get update && apt-get install -y \
+  ros-humble-xacro \
+  ros-humble-joint-state-publisher \
+  ros-humble-joint-state-publisher-gui \
+  ros-humble-ackermann-msgs \
+    ros-humble-ros-gz-sim \
+    ros-humble-ros-gz-bridge \
     ros-humble-ros2-control \
     ros-humble-ros2-controllers \
     ros-humble-joint-state-broadcaster \
     ros-humble-ackermann-steering-controller \
-    ros-humble-ros-gz-sim \
-    ros-humble-ros-gz-bridge \
+    python3-colcon-common-extensions \
   && rm -rf /var/lib/apt/lists/*
